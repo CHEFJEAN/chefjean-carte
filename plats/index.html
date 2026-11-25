@@ -316,7 +316,10 @@ function composer(format){
 /* ---------------- ajustement ---------------- */
 /* la feuille prend la plus grande taille qui tient : une famille de 3 plats
    remplit la page, une famille de 14 se resserre */
-const ECHELLE = [10.6, 10.0, 9.4, 9.0, 8.6, 8.2, 7.8, 7.4, 7.0, 6.6];
+/* feuilles lues de loin : le format A (une famille par feuille) prend toute la
+   taille que la page permet ; le format B, qui porte les trois familles, reste borné */
+const ECHELLE_A = [22, 20.5, 19, 17.5, 16, 15, 14, 13, 12, 11, 10.2, 9.4, 8.6, 7.8, 7.0];
+const ECHELLE_B = [12, 11.4, 10.6, 10.0, 9.4, 9.0, 8.6, 8.2, 7.8, 7.4, 7.0, 6.6];
 const MM = 3.7795;
 
 /* on mesure le bas réel du contenu contre le haut du pied de page : une
@@ -335,11 +338,12 @@ function deborde(pageEl){
 
 function ajusterTout(){
   const pages = document.querySelectorAll('#pages .page');
+  const echelle = etat.format === 'B' ? ECHELLE_B : ECHELLE_A;
   let ok = true;
   pages.forEach(p => {
     if(!p.querySelector('.corps')) return;
     let pose = false;
-    for(const fs of ECHELLE){
+    for(const fs of echelle){
       p.style.setProperty('--fs', fs + 'pt');
       if(!deborde(p)){ pose = true; break; }
     }
