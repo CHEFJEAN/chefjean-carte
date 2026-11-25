@@ -95,7 +95,9 @@ button{font:inherit;cursor:pointer}
 
 /* en-tête */
 .entete{text-align:center;flex:0 0 auto;padding:1mm 0 0}
-.logo{display:block;width:72mm;height:auto;margin:0 auto}
+/* largeur ET hauteur fixées : tant que l'image n'est pas décodée, height:auto
+   vaut 0 et la mesure de mise en page croit l'en-tête plus court qu'il n'est */
+.logo{display:block;width:72mm;height:12.88mm;object-fit:contain;margin:0 auto}
 .accroche{margin-top:2.1mm}
 .accroche p{margin:1.05mm 0 0;font-family:'Jost',sans-serif;font-weight:400;font-size:6.1pt;
   line-height:1.5;letter-spacing:.30em;text-transform:uppercase;text-indent:.30em}

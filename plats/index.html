@@ -82,7 +82,14 @@ button{font:inherit;cursor:pointer}
   box-shadow:0 1px 3px rgba(0,0,0,.14),0 8px 30px rgba(0,0,0,.10)}
 .pages .page:last-child{margin-bottom:0}
 .entete{text-align:center;flex:0 0 auto;padding:1mm 0 0}
-.logo{display:block;width:72mm;height:auto;margin:0 auto}
+/* version A : logo et promesses à gauche (demande de Pierre) */
+.entete.gauche{text-align:left}
+.entete.gauche .logo{margin-left:0}
+.entete.gauche .accroche{margin-top:3mm}
+.entete.gauche .accroche p{text-indent:0}
+/* largeur ET hauteur fixées : tant que l'image n'est pas décodée, height:auto
+   vaut 0 et la mesure de mise en page croit l'en-tête plus court qu'il n'est */
+.logo{display:block;width:72mm;height:12.88mm;object-fit:contain;margin:0 auto}
 .accroche{margin-top:2.1mm}
 .accroche p{margin:1.05mm 0 0;font-family:'Jost',sans-serif;font-size:6.1pt;line-height:1.5;
   letter-spacing:.30em;text-transform:uppercase;text-indent:.30em}
@@ -113,6 +120,7 @@ button{font:inherit;cursor:pointer}
 /* format B : trois familles sur une feuille */
 .bloc{margin-bottom:3.6mm}
 .bloc .liste{display:grid;grid-template-columns:1fr 1fr;gap:0 12mm}
+.bloc .liste .col{margin:0;padding:0;list-style:none}
 .bloc .item{margin-bottom:2.1mm}
 .bloc .fam-titre{font-size:calc(var(--fs) * 1.32);margin-bottom:2mm}
 
@@ -274,15 +282,23 @@ function corpsFamille(f, compact){
   const items = retenus(f);
   if(!items.length) return '';
   if(compact){
+    /* la colonne de droite est écrite en premier : les plats se lisent sous la
+       rubrique, qui est ferrée à droite */
+    const moitie = Math.ceil(items.length / 2);
+    const droite = items.slice(0, moitie);
+    const gauche = items.slice(moitie);
     return `<section class="bloc"><div class="fam-titre">${esc(f.titre)}</div>
-      <ul class="liste">${items.map(itemHTML).join('')}</ul></section>`;
+      <div class="liste">
+        <ul class="col" style="grid-column:2;grid-row:1">${droite.map(itemHTML).join('')}</ul>
+        <ul class="col" style="grid-column:1;grid-row:1">${gauche.map(itemHTML).join('')}</ul>
+      </div></section>`;
   }
   return `<ul class="liste">${items.map(itemHTML).join('')}</ul>`;
 }
 
-function page(corps, classe=''){
+function page(corps, classe='', enteteGauche=false){
   return `<article class="page">
-    <header class="entete">
+    <header class="entete${enteteGauche ? ' gauche' : ''}">
       <img class="logo" src="${LOGO}" alt="CHEFJEAN">
       <div class="accroche">
         <p>Sur place | À emporter | Livraisons</p>
@@ -307,7 +323,7 @@ function composer(format){
   }else{
     DATA.familles.forEach(f => {
       const c = corpsFamille(f, false);
-      if(c) pages.push(page(`<div class="fam-titre">${esc(f.titre)}</div>${c}`));
+      if(c) pages.push(page(`<div class="fam-titre">${esc(f.titre)}</div>${c}`, '', true));
     });
   }
   return pages;
