@@ -124,6 +124,17 @@ button{font:inherit;cursor:pointer}
 .bloc .item{margin-bottom:2.1mm}
 .bloc .fam-titre{font-size:calc(var(--fs) * 1.32);margin-bottom:2mm}
 
+/* format A (une famille par feuille) : les plats seuls, centrés en hauteur et en
+   largeur, sans logo, sans accroche et sans prix — demande de Pierre du 26/11/2026 */
+.page.centree{--ecart:6mm}
+.page.centree .corps{display:flex;flex-direction:column;justify-content:center;
+  align-items:stretch;text-align:center;padding:2mm 3mm 0}
+.page.centree .fam-titre{text-align:center;font-size:calc(var(--fs) * 1.28);
+  letter-spacing:.18em;margin:0 0 8mm}
+.page.centree .item{text-align:center}
+.page.centree .liste{margin:0 auto;max-width:180mm}
+.page.centree .info{font-size:calc(var(--fs) * .62);margin-top:1.4mm}
+
 .pied{flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;
   font-family:'Jost',sans-serif;font-size:6pt;letter-spacing:.2em;text-transform:uppercase;
   border-top:.4pt solid #000;padding-top:1.6mm;margin-top:2.2mm}
@@ -272,13 +283,14 @@ function toutCocher(dessine = true){
 /* ---------------- composition ---------------- */
 function retenus(f){ return f.items.filter((p,i) => sel[f.cle].has(i)); }
 
-function itemHTML(p){
+function itemHTML(p, avecPrix = true){
   const info = [p.service, p.allergenes].filter(Boolean).join(' · ');
-  return `<li class="item"><div class="l1"><span class="nom">${esc(p.nom)}</span><span class="prix">${esc(p.prix)}</span></div>
+  const prix = (avecPrix && p.prix) ? `<span class="prix">${esc(p.prix)}</span>` : '';
+  return `<li class="item"><div class="l1"><span class="nom">${esc(p.nom)}</span>${prix}</div>
     ${info ? `<div class="info">${esc(info)}</div>` : ''}</li>`;
 }
 
-function corpsFamille(f, compact){
+function corpsFamille(f, compact, avecPrix = true){
   const items = retenus(f);
   if(!items.length) return '';
   if(compact){
@@ -289,15 +301,16 @@ function corpsFamille(f, compact){
     const gauche = items.slice(moitie);
     return `<section class="bloc"><div class="fam-titre">${esc(f.titre)}</div>
       <div class="liste">
-        <ul class="col" style="grid-column:2;grid-row:1">${droite.map(itemHTML).join('')}</ul>
-        <ul class="col" style="grid-column:1;grid-row:1">${gauche.map(itemHTML).join('')}</ul>
+        <ul class="col" style="grid-column:2;grid-row:1">${droite.map(p => itemHTML(p, avecPrix)).join('')}</ul>
+        <ul class="col" style="grid-column:1;grid-row:1">${gauche.map(p => itemHTML(p, avecPrix)).join('')}</ul>
       </div></section>`;
   }
-  return `<ul class="liste">${items.map(itemHTML).join('')}</ul>`;
+  return `<ul class="liste">${items.map(p => itemHTML(p, avecPrix)).join('')}</ul>`;
 }
 
-function page(corps, classe='', enteteGauche=false){
-  return `<article class="page">
+function page(corps, opts = {}){
+  const { classe = '', centree = false, entete = true, enteteGauche = false } = opts;
+  const tete = entete ? `
     <header class="entete${enteteGauche ? ' gauche' : ''}">
       <img class="logo" src="${LOGO}" alt="CHEFJEAN">
       <div class="accroche">
@@ -305,7 +318,8 @@ function page(corps, classe='', enteteGauche=false){
         <p class="gras">Plats individuels faits maison, produits frais et de saison</p>
         <p class="gras">Chaque jour de nouvelles suggestions !</p>
       </div>
-    </header>
+    </header>` : '';
+  return `<article class="page${centree ? ' centree' : ''}">${tete}
     <div class="corps ${classe}">${corps}</div>
     <footer class="pied"><span>CHEFJEAN · Montpellier</span><span class="num-page"></span></footer>
   </article>`;
@@ -319,11 +333,13 @@ function composer(format){
       const c = corpsFamille(f, true);
       if(c) blocs += c;
     });
-    if(blocs) pages.push(page(blocs, 'pleine'));
+    if(blocs) pages.push(page(blocs, { classe: 'pleine' }));
   }else{
+    /* format A : plats seuls, centrés, sans logo, sans accroche et sans prix */
     DATA.familles.forEach(f => {
-      const c = corpsFamille(f, false);
-      if(c) pages.push(page(`<div class="fam-titre">${esc(f.titre)}</div>${c}`, '', true));
+      const c = corpsFamille(f, false, false);
+      if(c) pages.push(page(`<div class="fam-titre">${esc(f.titre)}</div>${c}`,
+                            { centree: true, entete: false }));
     });
   }
   return pages;
@@ -334,13 +350,18 @@ function composer(format){
    remplit la page, une famille de 14 se resserre */
 /* feuilles lues de loin : le format A (une famille par feuille) prend toute la
    taille que la page permet ; le format B, qui porte les trois familles, reste borné */
-const ECHELLE_A = [22, 20.5, 19, 17.5, 16, 15, 14, 13, 12, 11, 10.2, 9.4, 8.6, 7.8, 7.0];
+const ECHELLE_A = [40, 38, 36, 34, 32, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10.2, 9.4, 8.6, 7.8, 7.0];
 const ECHELLE_B = [12, 11.4, 10.6, 10.0, 9.4, 9.0, 8.6, 8.2, 7.8, 7.4, 7.0, 6.6];
 const MM = 3.7795;
 
 /* on mesure le bas réel du contenu contre le haut du pied de page : une
    colonne étirée par son propre contenu masquerait un débordement */
 function deborde(pageEl){
+  if(pageEl.classList.contains('centree')){
+    /* contenu centré : il tient si sa hauteur réelle ne dépasse pas le cadre */
+    const corps = pageEl.querySelector('.corps');
+    return !!corps && corps.scrollHeight > corps.clientHeight + 1;
+  }
   const pied = pageEl.querySelector('.pied');
   if(!pied) return false;
   const limite = pied.getBoundingClientRect().top;
