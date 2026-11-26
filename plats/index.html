@@ -373,19 +373,37 @@ function deborde(pageEl){
   return bas > limite - 14.0 * MM;
 }
 
+/* écart maximal de taille entre deux feuilles du format A (demande de Pierre,
+   26/11 : « pas trop grand, max 5 ») : on part de la plus petite feuille et on
+   ramène les autres à 5 pt au-dessus, jamais plus bas que ce qui tient */
+const ECART_MAX_A = 5;
+
 function ajusterTout(){
-  const pages = document.querySelectorAll('#pages .page');
+  const pages = Array.from(document.querySelectorAll('#pages .page'));
   const echelle = etat.format === 'B' ? ECHELLE_B : ECHELLE_A;
-  let ok = true;
+  const choix = [];
   pages.forEach(p => {
-    if(!p.querySelector('.corps')) return;
-    let pose = false;
+    if(!p.querySelector('.corps')){ choix.push(null); return; }
+    let taille = null;
     for(const fs of echelle){
       p.style.setProperty('--fs', fs + 'pt');
-      if(!deborde(p)){ pose = true; break; }
+      if(!deborde(p)){ taille = fs; break; }
     }
-    if(!pose) ok = false;
+    choix.push(taille);
   });
+  const ok = choix.every(t => t !== null);
+  if(etat.format === 'A'){
+    const tailles = choix.filter(t => t !== null);
+    if(tailles.length){
+      const plafond = Math.min(...tailles) + ECART_MAX_A;
+      pages.forEach((p, i) => {
+        const t = choix[i];
+        if(t === null) return;
+        const cible = Math.min(t, plafond);
+        if(cible !== t) p.style.setProperty('--fs', cible + 'pt');
+      });
+    }
+  }
   return ok;
 }
 
