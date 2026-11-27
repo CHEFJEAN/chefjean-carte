@@ -408,8 +408,6 @@ function envoyerParFormulaire(d) {
   setTimeout(function () { f.remove(); }, 60000);
 }
 
-bouton.addEventListener('click', function () { bouton.disabled = true; });
-
 form.addEventListener('submit', function (ev) {
   ev.preventDefault();
   var d = lire();
