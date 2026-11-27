@@ -358,18 +358,18 @@ function afficherConfirmation(d) {
 function envoyerParEmail(d) {
   var sujet = 'CSE 2026 - mode de vote - ' + d.nom;
   var corps = [
-    'Nom et prenom : ' + d.nom,
-    'Mode de vote : ' + (d.mode === 'correspondance' ? 'par correspondance' : 'en presentiel'),
+    'Nom et prénom : ' + d.nom,
+    'Mode de vote : ' + (d.mode === 'correspondance' ? 'par correspondance' : 'en présentiel'),
     ''
   ];
   if (d.mode === 'correspondance') {
     corps.push('Adresse : ' + d.adresse);
-    if (d.complement) corps.push('Complement : ' + d.complement);
+    if (d.complement) corps.push('Complément : ' + d.complement);
     corps.push('Code postal et ville : ' + d.cp + ' ' + d.ville);
-    corps.push('Adresse confirmee a jour : oui');
+    corps.push('Adresse confirmée à jour : oui');
   }
   corps.push('');
-  corps.push('Envoye depuis la page de vote du 8 decembre 2026.');
+  corps.push('Envoyé depuis la page de vote du 8 décembre 2026.');
   var lien = 'mailto:contact@chefjean.fr?subject=' + encodeURIComponent(sujet) +
              '&body=' + encodeURIComponent(corps.join('\n'));
   window.location.href = lien;
